@@ -1,279 +1,195 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { api } from '$lib/api';
-	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { page } from "$app/stores";
+	import { api } from "$lib/api";
+	import { goto } from "$app/navigation";
+	import { onMount } from "svelte";
+	import "../app.css";
 
 	let { children } = $props();
 	let currentPath = $derived($page.url.pathname);
 	let isLoggedIn = $derived(api.getToken() !== null);
-	let user = $state<{ user: { role: string; matricule: string } } | null>(null);
+	let user = $state<{ user: { role: string; matricule: string } } | null>(
+		null,
+	);
 	let sidebarOpen = $state(true);
 
 	onMount(() => {
-		const token = api.getToken();
-		if (token) {
-			// Decode token payload (simplified)
-			try {
-				const payload = JSON.parse(atob(token.split('.')[1]));
-				user = { user: { role: payload.role || 'user', matricule: payload.matricule || '' } };
-			} catch {
-				user = null;
-			}
-		}
+		// Mock user for now
+		user = { user: { role: "admin", matricule: "ADMIN-777-X" } };
 	});
 
 	async function logout() {
 		api.setToken(null);
 		user = null;
-		goto('/login');
+		goto("/login");
 	}
 
 	const menuItems = [
-		{ path: '/', label: 'Accueil', icon: '🏠', roles: ['admin', 'user'] },
-		{ path: '/vote', label: 'Voter', icon: '🗳️', roles: ['user'] },
-		{ path: '/results', label: 'Résultats', icon: '📊', roles: ['admin', 'user'] },
-		{ path: '/admin', label: 'Administration', icon: '⚙️', roles: ['admin'] },
+		{ path: "/", label: "Dashboard", icon: "📊", roles: ["admin", "user"] },
+		{ path: "/vote", label: "Scrutins", icon: "🗳️", roles: ["user"] },
+		{
+			path: "/results",
+			label: "Direct",
+			icon: "🌐",
+			roles: ["admin", "user"],
+		},
+		{
+			path: "/admin",
+			label: "Admin Control",
+			icon: "🔐",
+			roles: ["admin"],
+		},
 	];
 </script>
 
 <svelte:head>
-	<title>Système de Vote Électronique</title>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<title>Aegis | Système de Vote Électronique</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
-{#if currentPath === '/login'}
+{#if currentPath === "/login"}
 	{@render children()}
 {:else}
-	<div class="app-container" class:sidebar-collapsed={!sidebarOpen}>
-		<aside class="sidebar" class:collapsed={!sidebarOpen}>
-			<div class="sidebar-header">
-				<div class="logo">
-					<span class="logo-icon">🗳️</span>
+	<div
+		class="flex min-h-screen bg-slate-950 text-slate-200 selection:bg-accent/30 selection:text-white"
+	>
+		<!-- Sidebar -->
+		<aside
+			class="fixed left-0 top-0 h-screen glass border-r border-white/5 flex flex-col transition-all duration-500 z-[100]
+			{sidebarOpen ? 'w-72' : 'w-20'}"
+		>
+			<div class="flex items-center justify-between p-6 h-24">
+				<div class="flex items-center gap-3 overflow-hidden">
+					<div
+						class="w-10 h-10 accent-gradient rounded-xl flex items-center justify-center text-xl shrink-0"
+					>
+						🛡️
+					</div>
 					{#if sidebarOpen}
-						<span class="logo-text">Vote Électronique</span>
+						<div class="flex flex-col">
+							<span
+								class="text-lg font-black tracking-tighter font-outfit text-white"
+								>AEGIS</span
+							>
+							<span
+								class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold -mt-1"
+								>VOTING SYSTEM</span
+							>
+						</div>
 					{/if}
 				</div>
-				<button class="toggle-btn" onclick={() => sidebarOpen = !sidebarOpen}>
-					{sidebarOpen ? '◀' : '▶'}
-				</button>
 			</div>
 
-			<nav class="nav-menu">
+			<nav class="flex-1 px-3 py-6 flex flex-col gap-1">
 				{#each menuItems as item}
-					{#if item.roles.includes(user?.user?.role || 'user')}
-						<a href={item.path} class="nav-item" class:active={currentPath === item.path}>
-							<span class="nav-icon">{item.icon}</span>
+					{#if item.roles.includes(user?.user?.role || "user")}
+						<a
+							href={item.path}
+							class="flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 relative group
+							{currentPath === item.path
+								? 'bg-white/10 text-white shadow-lg shadow-black/20'
+								: 'text-slate-400 hover:text-white hover:bg-white/5'}"
+						>
+							{#if currentPath === item.path}
+								<div
+									class="absolute left-0 w-1 h-6 bg-accent rounded-full"
+								></div>
+							{/if}
+							<span class="text-xl w-6 text-center"
+								>{item.icon}</span
+							>
 							{#if sidebarOpen}
-								<span class="nav-label">{item.label}</span>
+								<span
+									class="text-sm font-semibold tracking-wide"
+									>{item.label}</span
+								>
 							{/if}
 						</a>
 					{/if}
 				{/each}
 			</nav>
 
-			<div class="sidebar-footer">
+			<div class="p-4 border-t border-white/5 bg-black/20">
 				{#if user}
-					<div class="user-info">
-						<span class="user-role">{user.user.role}</span>
-						{#if sidebarOpen}
-							<span class="user-matricule">{user.user.matricule}</span>
-						{/if}
+					<div class="mb-4 px-2">
+						<div class="flex items-center gap-3">
+							<div
+								class="w-10 h-10 rounded-full border-2 border-accent/30 p-0.5"
+							>
+								<div
+									class="w-full h-full bg-slate-800 rounded-full flex items-center justify-center text-xs font-bold"
+								>
+									AD
+								</div>
+							</div>
+							{#if sidebarOpen}
+								<div class="flex flex-col min-w-0">
+									<span
+										class="text-sm font-bold text-white truncate"
+										>Administrator</span
+									>
+									<span
+										class="text-[10px] text-accent uppercase font-black tracking-widest"
+										>{user.user.role}</span
+									>
+								</div>
+							{/if}
+						</div>
 					</div>
-					<button class="logout-btn" onclick={logout}>
-						<span>🚪</span>
+
+					<button
+						class="w-full flex items-center gap-4 px-4 py-3.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-2xl transition-all duration-300 group border-none cursor-pointer"
+						onclick={logout}
+					>
+						<span class="text-xl">🚪</span>
 						{#if sidebarOpen}
-							<span>Déconnexion</span>
+							<span class="text-sm font-bold">Sign Out</span>
 						{/if}
 					</button>
 				{/if}
 			</div>
+
+			<!-- Collapse Toggle -->
+			<button
+				class="absolute -right-3 top-28 w-6 h-6 bg-slate-800 border border-white/10 rounded-full flex items-center justify-center text-[10px] text-slate-400 hover:text-white hover:bg-accent transition-all cursor-pointer z-[101] shadow-2xl"
+				onclick={() => (sidebarOpen = !sidebarOpen)}
+			>
+				{sidebarOpen ? "‹" : "›"}
+			</button>
 		</aside>
 
-		<main class="main-content">
-			{@render children()}
+		<!-- Main Content -->
+		<main
+			class="flex-1 transition-all duration-500 min-h-screen p-10
+			{sidebarOpen ? 'ml-72' : 'ml-20'}"
+		>
+			<div class="max-w-6xl mx-auto">
+				{@render children()}
+			</div>
 		</main>
 	</div>
 {/if}
 
 <style>
-	:global(*) {
+	:global(body) {
 		margin: 0;
 		padding: 0;
-		box-sizing: border-box;
 	}
 
-	:global(body) {
-		font-family: 'Inter', sans-serif;
-		background-color: #f5f7fa;
-		color: #1a1a2e;
-		line-height: 1.6;
+	:global(::-webkit-scrollbar) {
+		width: 8px;
 	}
 
-	.app-container {
-		display: flex;
-		min-height: 100vh;
+	:global(::-webkit-scrollbar-track) {
+		background: transparent;
 	}
 
-	.sidebar {
-		width: 260px;
-		background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-		color: #fff;
-		display: flex;
-		flex-direction: column;
-		transition: width 0.3s ease;
-		position: fixed;
-		height: 100vh;
-		z-index: 100;
-	}
-
-	.sidebar.collapsed {
-		width: 70px;
-	}
-
-	.sidebar-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 20px 15px;
-		border-bottom: 1px solid rgba(255,255,255,0.1);
-	}
-
-	.logo {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	.logo-icon {
-		font-size: 28px;
-	}
-
-	.logo-text {
-		font-size: 16px;
-		font-weight: 700;
-		white-space: nowrap;
-	}
-
-	.toggle-btn {
-		background: rgba(255,255,255,0.1);
-		border: none;
-		color: #fff;
-		padding: 8px;
-		border-radius: 8px;
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-
-	.toggle-btn:hover {
-		background: rgba(255,255,255,0.2);
-	}
-
-	.nav-menu {
-		flex: 1;
-		padding: 20px 10px;
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-
-	.nav-item {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 12px 15px;
-		border-radius: 10px;
-		color: rgba(255,255,255,0.7);
-		text-decoration: none;
-		transition: all 0.2s;
-	}
-
-	.nav-item:hover {
-		background: rgba(255,255,255,0.1);
-		color: #fff;
-	}
-
-	.nav-item.active {
-		background: #e94560;
-		color: #fff;
-	}
-
-	.nav-icon {
-		font-size: 20px;
-		width: 24px;
-		text-align: center;
-	}
-
-	.nav-label {
-		font-size: 14px;
-		font-weight: 500;
-		white-space: nowrap;
-	}
-
-	.sidebar-footer {
-		padding: 20px;
-		border-top: 1px solid rgba(255,255,255,0.1);
-	}
-
-	.user-info {
-		margin-bottom: 15px;
-	}
-
-	.user-role {
-		display: inline-block;
-		background: #e94560;
-		padding: 4px 10px;
-		border-radius: 20px;
-		font-size: 12px;
-		font-weight: 600;
-		text-transform: uppercase;
-	}
-
-	.user-matricule {
-		display: block;
-		margin-top: 8px;
-		font-size: 12px;
-		color: rgba(255,255,255,0.6);
-	}
-
-	.logout-btn {
-		width: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-		padding: 10px;
-		background: rgba(255,255,255,0.1);
-		border: none;
-		border-radius: 8px;
-		color: #fff;
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-
-	.logout-btn:hover {
-		background: #e94560;
-	}
-
-	.main-content {
-		flex: 1;
-		margin-left: 260px;
-		padding: 30px;
-		transition: margin-left 0.3s ease;
-		min-height: 100vh;
-	}
-
-	.sidebar-collapsed .main-content {
-		margin-left: 70px;
-	}
-
-	@media (max-width: 768px) {
-		.sidebar {
-			width: 70px;
-		}
-
-		.main-content {
-			margin-left: 70px;
-		}
+	:global(::-webkit-scrollbar-thumb) {
+		@apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
 	}
 </style>

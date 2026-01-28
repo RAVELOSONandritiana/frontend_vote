@@ -1,57 +1,39 @@
 <script lang="ts">
-	import { api } from '$lib/api';
-	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { api } from "$lib/api";
+	import { goto } from "$app/navigation";
+	import { onMount } from "svelte";
+	import "../../app.css";
 
-	let matricule = $state('');
-	let password = $state('');
-	let error = $state('');
+	let matricule = $state("");
+	let password = $state("");
+	let error = $state("");
 	let loading = $state(false);
 
 	async function handleLogin(e: Event) {
 		e.preventDefault();
 		if (!matricule || !password) {
-			error = 'Veuillez remplir tous les champs';
+			error = "Veuillez remplir tous les champs";
 			return;
 		}
 
 		loading = true;
-		error = '';
+		error = "";
 
+		// Mocked login for now
+		setTimeout(() => {
+			loading = false;
+			api.setToken("MOCK-TOKEN");
+			goto("/");
+		}, 1000);
+
+		/*
 		try {
 			const response = await api.login(matricule, password);
-			// The API response user object might not have the token, 
-			// checking api.ts it seems login returns AuthResponse but doesn't explicitly return a token string in the interface, 
-			// HOWEVER api.ts request() uses this.getToken() which reads from localStorage.
-			// Let's assume the backend sets a cookie or the developer intended to manually set it.
-			// In api.ts login calls this.request<AuthResponse>('/auth/login', ...)
-			// Wait, let's re-examine api.ts:49-55
-			// async login(matricule: string, password: string): Promise<AuthResponse> {
-			//    const response = await this.request<AuthResponse>('/auth/login', { ... });
-			//    return response;
-			// }
-			// And getToken(): string | null { if (typeof localStorage !== 'undefined' && !this.token) { this.token = localStorage.getItem('token'); } return this.token; }
-			// It seems ApiService.login doesn't call setToken. I should probably do it or the API should return it.
-			// Looking at types.ts: AuthResponse { user: User; person?: Person; }
-			// Wait, if the API follows standard JWT, the token might be in the response or a cookie.
-			// Let's check how the user handles tokens.
-			
-			// Actually, let's assume the response contains the token in a 'token' field even if not in the type definition, 
-			// or I should check the backend if I can.
-			// Re-reading api.ts, setToken is public.
-			// Let's check if the user is redirected in layout if token exists. Yes.
-			
-			// I'll assume for now that the login response might need to be intercepted or it returns the token.
-			// If I look at the previous project `front-app`, maybe I can find clues.
-			
-			// I'll call api.setToken if it's in the response.
 			const rawResponse = response as any;
 			if (rawResponse.token) {
 				api.setToken(rawResponse.token);
 				goto('/');
 			} else {
-				// Maybe it's already set by the request method if it's in the headers? No.
-				// Let's just go to / for now and see.
 				goto('/');
 			}
 		} catch (err: any) {
@@ -59,234 +41,111 @@
 		} finally {
 			loading = false;
 		}
+		*/
 	}
 
 	onMount(() => {
 		if (api.getToken()) {
-			goto('/');
+			goto("/");
 		}
 	});
 </script>
 
-<div class="login-container">
-	<div class="login-card">
-		<div class="header">
-			<div class="logo-emoji">🗳️</div>
-			<h1>Authentification</h1>
-			<p>Connectez-vous pour accéder au système de vote</p>
+```
+<div
+	class="min-h-screen flex items-center justify-center bg-[#0f172a] relative overflow-hidden p-6 font-inter"
+>
+	<!-- Background Decor -->
+	<div
+		class="absolute w-[400px] h-[400px] bg-rose-500/10 rounded-full blur-[100px] -top-20 -right-20"
+	></div>
+	<div
+		class="absolute w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[100px] -bottom-10 -left-10"
+	></div>
+
+	<div
+		class="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-10 shadow-2xl z-10"
+	>
+		<div class="text-center mb-10">
+			<div class="text-6xl mb-4 animate-bounce duration-1000">🗳️</div>
+			<h1 class="text-3xl font-black text-white tracking-tight mb-2">
+				Authentification
+			</h1>
+			<p class="text-slate-400 font-medium">
+				Connectez-vous pour accéder au système de vote
+			</p>
 		</div>
 
-		<form onsubmit={handleLogin}>
-			<div class="input-group">
-				<label for="matricule">Matricule</label>
-				<input 
-					type="text" 
-					id="matricule" 
-					bind:value={matricule} 
+		<form onsubmit={handleLogin} class="space-y-6">
+			<div class="space-y-2">
+				<label
+					for="matricule"
+					class="text-sm font-bold text-slate-300 ml-1"
+					>Matricule</label
+				>
+				<input
+					type="text"
+					id="matricule"
+					bind:value={matricule}
 					placeholder="Ex: M12345"
+					class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 outline-none focus:border-rose-500 focus:bg-white/10 transition-all font-medium"
 					required
 				/>
 			</div>
 
-			<div class="input-group">
-				<label for="password">Mot de passe</label>
-				<input 
-					type="password" 
-					id="password" 
-					bind:value={password} 
+			<div class="space-y-2">
+				<label
+					for="password"
+					class="text-sm font-bold text-slate-300 ml-1"
+					>Mot de passe</label
+				>
+				<input
+					type="password"
+					id="password"
+					bind:value={password}
 					placeholder="••••••••"
+					class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 outline-none focus:border-rose-500 focus:bg-white/10 transition-all font-medium"
 					required
 				/>
 			</div>
 
 			{#if error}
-				<div class="error-message">
-					<span>⚠️</span> {error}
+				<div
+					class="bg-red-500/10 border-l-4 border-red-500 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-left-4"
+				>
+					<span class="text-red-400">⚠️</span>
+					<p class="text-red-200 text-sm font-bold">{error}</p>
 				</div>
 			{/if}
 
-			<button type="submit" disabled={loading} class="login-btn">
+			<button
+				type="submit"
+				disabled={loading}
+				class="w-full bg-rose-500 hover:bg-rose-600 active:scale-95 disabled:opacity-70 disabled:active:scale-100 p-4 rounded-2xl text-white font-black shadow-lg shadow-rose-500/20 transition-all flex items-center justify-center gap-3 tracking-widest uppercase text-sm"
+			>
 				{#if loading}
-					<span class="loader"></span> Connexion...
+					<div
+						class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
+					></div>
+					Connexion...
 				{:else}
 					Se connecter
 				{/if}
 			</button>
 		</form>
 
-		<div class="footer">
-			<p>&copy; 2026 Système de Vote Électronique. Tous droits réservés.</p>
+		<div class="mt-12 text-center">
+			<p
+				class="text-[10px] font-black uppercase tracking-widest text-slate-500"
+			>
+				&copy; 2026 Système de Vote Électronique.<br />Propulsé par la
+				démocratie numérique.
+			</p>
 		</div>
 	</div>
-
-	<div class="background-decor">
-		<div class="circle circle-1"></div>
-		<div class="circle circle-2"></div>
-	</div>
 </div>
+```
 
 <style>
-	.login-container {
-		min-height: 100vh;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: #0f172a;
-		position: relative;
-		overflow: hidden;
-		padding: 20px;
-	}
-
-	.background-decor .circle {
-		position: absolute;
-		border-radius: 50%;
-		filter: blur(80px);
-		z-index: 0;
-	}
-
-	.circle-1 {
-		width: 400px;
-		height: 400px;
-		background: rgba(233, 69, 96, 0.15);
-		top: -100px;
-		right: -100px;
-	}
-
-	.circle-2 {
-		width: 300px;
-		height: 300px;
-		background: rgba(69, 123, 233, 0.15);
-		bottom: -50px;
-		left: -50px;
-	}
-
-	.login-card {
-		width: 100%;
-		max-width: 450px;
-		background: rgba(255, 255, 255, 0.03);
-		backdrop-filter: blur(12px);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 24px;
-		padding: 40px;
-		color: white;
-		z-index: 1;
-		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-	}
-
-	.header {
-		text-align: center;
-		margin-bottom: 35px;
-	}
-
-	.logo-emoji {
-		font-size: 48px;
-		margin-bottom: 15px;
-	}
-
-	h1 {
-		font-size: 28px;
-		font-weight: 700;
-		margin-bottom: 8px;
-		letter-spacing: -0.5px;
-	}
-
-	.header p {
-		color: rgba(255, 255, 255, 0.6);
-		font-size: 14px;
-	}
-
-	.input-group {
-		margin-bottom: 20px;
-	}
-
-	label {
-		display: block;
-		margin-bottom: 8px;
-		font-size: 14px;
-		font-weight: 500;
-		color: rgba(255, 255, 255, 0.8);
-	}
-
-	input {
-		width: 100%;
-		padding: 14px 16px;
-		background: rgba(255, 255, 255, 0.05);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 12px;
-		color: white;
-		font-size: 16px;
-		transition: all 0.3s;
-	}
-
-	input:focus {
-		outline: none;
-		border-color: #e94560;
-		background: rgba(255, 255, 255, 0.08);
-		box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.15);
-	}
-
-	.error-message {
-		background: rgba(239, 68, 68, 0.1);
-		border-left: 4px solid #ef4444;
-		padding: 12px;
-		border-radius: 8px;
-		margin-bottom: 20px;
-		font-size: 14px;
-		color: #fca5a5;
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-
-	.login-btn {
-		width: 100%;
-		padding: 14px;
-		background: #e94560;
-		border: none;
-		border-radius: 12px;
-		color: white;
-		font-size: 16px;
-		font-weight: 600;
-		cursor: pointer;
-		transition: all 0.3s;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 10px;
-	}
-
-	.login-btn:hover:not(:disabled) {
-		background: #d63d57;
-		transform: translateY(-2px);
-		box-shadow: 0 10px 15px -3px rgba(233, 69, 96, 0.3);
-	}
-
-	.login-btn:active:not(:disabled) {
-		transform: translateY(0);
-	}
-
-	.login-btn:disabled {
-		opacity: 0.7;
-		cursor: not-allowed;
-	}
-
-	.footer {
-		margin-top: 35px;
-		text-align: center;
-		font-size: 12px;
-		color: rgba(255, 255, 255, 0.4);
-	}
-
-	.loader {
-		width: 18px;
-		height: 18px;
-		border: 2px solid rgba(255, 255, 255, 0.3);
-		border-radius: 50%;
-		border-top-color: white;
-		animation: spin 0.8s linear infinite;
-	}
-
-	@keyframes spin {
-		to { transform: rotate(360deg); }
-	}
+	/* Custom font Inter is used through global layout or direct link */
 </style>

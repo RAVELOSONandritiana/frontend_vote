@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme {
+    --color-slate-950: #020617;
+    --color-midnight: #0b1120;
+    --color-accent: #10b981;
+    /* Emerald/Green */
+    --color-accent-hover: #059669;
+
+    --font-sans: "Inter", "Outfit", system-ui, sans-serif;
+}
+
+@layer base {
+    body {
+        @apply bg-slate-950 text-slate-300 font-sans antialiased text-sm;
+        background-image:
+            radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-outfit text-white tracking-tight;
+    }
+}
+
+@layer utilities {
+    .glass {
+        @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 shadow-2xl;
+    }
+
+    .glass-dark {
+        @apply bg-black/40 backdrop-blur-2xl border border-white/5 shadow-inner;
+    }
+
+    .text-gradient {
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400;
+    }
+
+    .accent-gradient {
+        @apply bg-gradient-to-br from-emerald-400 to-indigo-500 shadow-lg shadow-emerald-500/20;
+    }
+}

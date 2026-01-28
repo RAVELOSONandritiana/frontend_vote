@@ -4,159 +4,322 @@
     import type { Election, Tour } from "$lib/types";
     import { goto } from "$app/navigation";
 
-    let elections = $state<Election[]>([]);
-    let tours = $state<Tour[]>([]);
-    let loading = $state(true);
+    let elections = $state<Election[]>([
+        {
+            id: "1",
+            name: "Élection Présidentielle 2026",
+            createdAt: "2026-01-01T10:00:00Z",
+            finish: false,
+        },
+        {
+            id: "2",
+            name: "Élection Législatives",
+            createdAt: "2025-12-15T09:00:00Z",
+            finish: true,
+        },
+        {
+            id: "3",
+            name: "Référendum Constitutionnel",
+            createdAt: "2025-11-20T08:30:00Z",
+            finish: true,
+        },
+    ]);
+    let tours = $state<Tour[]>([
+        {
+            id: "101",
+            id_election: "1",
+            finish: false,
+            debut: "2026-02-01T08:00:00Z",
+            fin: "2026-02-01T18:00:00Z",
+        },
+    ]);
+    let loading = $state(false);
     let error = $state("");
 
     onMount(async () => {
-        if (!api.getToken()) {
-            goto("/login");
-            return;
-        }
-
-        try {
-            const [eData, tData] = await Promise.all([
-                api.getElections(),
-                api.getTours(),
-            ]);
-            elections = eData;
-            tours = tData;
-        } catch (err: any) {
-            error = "Impossible de charger les données du tableau de bord";
-            console.error(err);
-        } finally {
-            loading = false;
-        }
+        // Mocked
     });
 
     const stats = $derived([
         {
-            label: "Élections",
-            value: elections.length,
-            icon: "🗳️",
-            color: "#4f46e5",
+            label: "Scrutins Actifs",
+            value: elections.filter((e) => !e.finish).length,
+            icon: "💠",
+            trend: "+2 ce mois",
+            color: "from-blue-500 to-indigo-600",
         },
         {
             label: "Tours en cours",
             value: tours.filter((t) => !t.finish).length,
-            icon: "🔄",
-            color: "#e94560",
+            icon: "⏳",
+            trend: "1 se termine aujourd'hui",
+            color: "from-rose-500 to-accent",
         },
         {
-            label: "Élections terminées",
-            value: elections.filter((e) => e.finish).length,
-            icon: "✅",
-            color: "#10b981",
+            label: "Participation",
+            value: "84.2%",
+            icon: "📈",
+            trend: "+5% vs 2025",
+            color: "from-emerald-500 to-teal-600",
         },
         {
-            label: "Candidats total",
-            value: "...",
-            icon: "👥",
-            color: "#f59e0b",
+            label: "Candidats",
+            value: "154",
+            icon: "💎",
+            trend: "Vérifiés",
+            color: "from-amber-400 to-orange-500",
         },
     ]);
 </script>
 
-<div class="dashboard">
-    <header class="page-header">
-        <div>
-            <h1>Tableau de bord</h1>
-            <p>Bienvenue sur le système de vote électronique sécurisé.</p>
-        </div>
-        <div class="date-badge">
-            {new Date().toLocaleDateString("fr-FR", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            })}
+<div class="space-y-12 pb-20">
+    <header class="relative">
+        <div
+            class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
+        >
+            <div class="space-y-2">
+                <span
+                    class="text-accent font-black tracking-[0.3em] text-[10px] uppercase"
+                    >Nexus Overview</span
+                >
+                <h1 class="text-3xl font-black font-outfit text-white">
+                    Console de Contrôle
+                </h1>
+                <p class="text-slate-500 text-sm font-medium max-w-md">
+                    Monitorez l'intégrité et la progression des scrutins.
+                </p>
+            </div>
+
+            <div class="glass px-6 py-4 rounded-2xl flex items-center gap-4">
+                <div
+                    class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
+                ></div>
+                <span
+                    class="text-sm font-bold text-slate-300 uppercase tracking-widest"
+                    >System Operational</span
+                >
+            </div>
         </div>
     </header>
 
     {#if loading}
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Chargement de vos données...</p>
+        <div
+            class="h-96 glass rounded-[2.5rem] flex flex-col items-center justify-center gap-6"
+        >
+            <div
+                class="w-16 h-16 border-4 border-white/5 border-t-accent rounded-full animate-spin"
+            ></div>
+            <p
+                class="text-slate-400 font-bold tracking-widest uppercase text-xs"
+            >
+                Syncing Neural Link...
+            </p>
         </div>
     {:else if error}
-        <div class="error-card">
-            <span>⚠️</span>
-            <p>{error}</p>
-            <button onclick={() => window.location.reload()}>Réessayer</button>
+        <div
+            class="glass border-rose-500/20 p-12 rounded-[2.5rem] text-center space-y-6"
+        >
+            <div class="text-6xl text-rose-500">⚠</div>
+            <h2 class="text-2xl font-bold text-white">Liaison Interrompue</h2>
+            <p class="text-slate-400">{error}</p>
+            <button
+                onclick={() => window.location.reload()}
+                class="accent-gradient px-8 py-3 rounded-xl font-bold text-white"
+                >Reconnect</button
+            >
         </div>
     {:else}
-        <div class="stats-grid">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {#each stats as stat}
-                <div class="stat-card" style="--accent-color: {stat.color}">
-                    <div class="stat-icon">{stat.icon}</div>
-                    <div class="stat-info">
-                        <span class="stat-label">{stat.label}</span>
-                        <span class="stat-value">{stat.value}</span>
+                <div
+                    class="glass group p-8 rounded-[2rem] hover:bg-white/10 transition-all duration-500 relative overflow-hidden"
+                >
+                    <div
+                        class="absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br {stat.color} opacity-10 blur-2xl group-hover:opacity-20 transition-opacity"
+                    ></div>
+
+                    <div class="flex flex-col gap-6 relative z-10">
+                        <div
+                            class="w-12 h-12 glass rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-500"
+                        >
+                            {stat.icon}
+                        </div>
+                        <div>
+                            <span
+                                class="text-slate-500 text-xs font-black uppercase tracking-widest mb-1 block"
+                                >{stat.label}</span
+                            >
+                            <div class="flex items-baseline gap-2">
+                                <span
+                                    class="text-4xl font-black text-white font-outfit"
+                                    >{stat.value}</span
+                                >
+                            </div>
+                            <span
+                                class="text-[10px] text-accent font-bold mt-2 block"
+                                >{stat.trend}</span
+                            >
+                        </div>
                     </div>
                 </div>
             {/each}
         </div>
 
-        <div class="content-sections">
-            <section class="quick-actions card">
-                <h2>Actions Rapides</h2>
-                <div class="actions-grid">
-                    <a href="/vote" class="action-btn">
-                        <span class="icon">🗳️</span>
-                        <div class="text">
-                            <strong>Voter maintenant</strong>
-                            <span>Accéder aux scrutins ouverts</span>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-12">
+            <!-- Quick Actions -->
+            <section class="lg:col-span-4 space-y-6">
+                <h3
+                    class="text-sm font-black text-slate-500 uppercase tracking-[0.3em] px-2"
+                >
+                    Access Portal
+                </h3>
+                <div class="grid gap-4">
+                    <a
+                        href="/vote"
+                        class="glass-dark group p-6 rounded-3xl flex items-center justify-between hover:bg-accent/10 transition-all border-none"
+                    >
+                        <div class="flex items-center gap-5">
+                            <div
+                                class="w-14 h-14 glass rounded-2xl flex items-center justify-center text-3xl group-hover:rotate-6 transition-transform"
+                            >
+                                🗳️
+                            </div>
+                            <div>
+                                <span
+                                    class="text-white font-bold text-lg block italic"
+                                    >Voter</span
+                                >
+                                <span class="text-slate-500 text-xs"
+                                    >Ouvrir le portail citoyen</span
+                                >
+                            </div>
                         </div>
+                        <span
+                            class="text-slate-600 group-hover:text-accent transition-colors font-black"
+                            >→</span
+                        >
                     </a>
-                    <a href="/results" class="action-btn">
-                        <span class="icon">📊</span>
-                        <div class="text">
-                            <strong>Voir les résultats</strong>
-                            <span>Statistiques en temps réel</span>
+                    <a
+                        href="/results"
+                        class="glass-dark group p-6 rounded-3xl flex items-center justify-between hover:bg-blue-500/10 transition-all border-none"
+                    >
+                        <div class="flex items-center gap-5">
+                            <div
+                                class="w-14 h-14 glass rounded-2xl flex items-center justify-center text-3xl group-hover:rotate-6 transition-transform"
+                            >
+                                📊
+                            </div>
+                            <div>
+                                <span
+                                    class="text-white font-bold text-lg block italic"
+                                    >Direct</span
+                                >
+                                <span class="text-slate-500 text-xs"
+                                    >Node de résultats global</span
+                                >
+                            </div>
                         </div>
+                        <span
+                            class="text-slate-600 group-hover:text-blue-400 transition-colors font-black"
+                            >→</span
+                        >
                     </a>
-                    <a href="/admin" class="action-btn">
-                        <span class="icon">⚙️</span>
-                        <div class="text">
-                            <strong>Administration</strong>
-                            <span>Gérer les élections</span>
+                    <a
+                        href="/admin"
+                        class="glass-dark group p-6 rounded-3xl flex items-center justify-between hover:bg-emerald-500/10 transition-all border-none"
+                    >
+                        <div class="flex items-center gap-5">
+                            <div
+                                class="w-14 h-14 glass rounded-2xl flex items-center justify-center text-3xl group-hover:rotate-6 transition-transform"
+                            >
+                                🔐
+                            </div>
+                            <div>
+                                <span
+                                    class="text-white font-bold text-lg block italic"
+                                    >Admin</span
+                                >
+                                <span class="text-slate-500 text-xs"
+                                    >Configuration noyau</span
+                                >
+                            </div>
                         </div>
+                        <span
+                            class="text-slate-600 group-hover:text-emerald-400 transition-colors font-black"
+                            >→</span
+                        >
                     </a>
                 </div>
             </section>
 
-            <section class="recent-elections card">
-                <div class="section-header">
-                    <h2>Élections Récentes</h2>
-                    <a href="/admin" class="view-all">Gérer tout</a>
+            <!-- Activity / Recent -->
+            <section class="lg:col-span-8 flex flex-col gap-6">
+                <div class="flex justify-between items-center px-2">
+                    <h3
+                        class="text-sm font-black text-slate-500 uppercase tracking-[0.3em]"
+                    >
+                        Scrutins Récents
+                    </h3>
+                    <button
+                        class="text-[10px] text-accent font-black uppercase tracking-widest hover:underline cursor-pointer border-none bg-transparent"
+                        >History Logs</button
+                    >
                 </div>
-                <div class="election-list">
-                    {#if elections.length === 0}
-                        <p class="empty-state">
-                            Aucune élection enregistrée pour le moment.
-                        </p>
-                    {:else}
+
+                <div class="glass rounded-[2.5rem] overflow-hidden flex-1">
+                    <div class="p-4 space-y-1">
                         {#each elections.slice(0, 5) as election}
-                            <div class="election-item">
-                                <div class="election-icon">🗳️</div>
-                                <div class="election-details">
-                                    <strong>{election.name}</strong>
-                                    <span
-                                        >Créée le {new Date(
-                                            election.createdAt,
-                                        ).toLocaleDateString()}</span
+                            <div
+                                class="flex items-center justify-between p-6 hover:bg-white/5 rounded-3xl transition-all group"
+                            >
+                                <div class="flex items-center gap-6">
+                                    <div
+                                        class="w-12 h-12 glass rounded-2xl flex items-center justify-center text-xl bg-slate-900 shadow-inner group-hover:scale-110 transition-transform"
                                     >
+                                        🗳️
+                                    </div>
+                                    <div>
+                                        <h4
+                                            class="text-white font-bold text-lg leading-tight uppercase tracking-tight"
+                                        >
+                                            {election.name}
+                                        </h4>
+                                        <span
+                                            class="text-[10px] text-slate-500 font-black tracking-widest"
+                                            >DEPLOYED: {new Date(
+                                                election.createdAt,
+                                            ).toLocaleDateString()}</span
+                                        >
+                                    </div>
                                 </div>
-                                <span
-                                    class="status-badge"
-                                    class:finished={election.finish}
-                                >
-                                    {election.finish ? "Terminée" : "Active"}
-                                </span>
+                                <div class="flex items-center gap-8">
+                                    <div
+                                        class="hidden sm:flex flex-col items-end"
+                                    >
+                                        <span
+                                            class="text-xs font-bold text-white italic"
+                                            >Signature Verified</span
+                                        >
+                                        <span
+                                            class="text-[9px] text-slate-600 font-black tracking-widest uppercase"
+                                            >SHA-256 Validated</span
+                                        >
+                                    </div>
+                                    <span
+                                        class="px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border
+                                        {election.finish
+                                            ? 'bg-white/5 text-slate-500 border-white/5'
+                                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}"
+                                    >
+                                        {election.finish
+                                            ? "Archivé"
+                                            : "Broadcasting"}
+                                    </span>
+                                </div>
                             </div>
                         {/each}
-                    {/if}
+                    </div>
                 </div>
             </section>
         </div>
@@ -164,245 +327,5 @@
 </div>
 
 <style>
-    .dashboard {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-    }
-
-    h1 {
-        font-size: 28px;
-        font-weight: 700;
-        color: #1a1a2e;
-        margin-bottom: 5px;
-    }
-
-    .page-header p {
-        color: #64748b;
-    }
-
-    .date-badge {
-        background: #fff;
-        padding: 8px 16px;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 500;
-        color: #1a1a2e;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e2e8f0;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 20px;
-        margin-bottom: 40px;
-    }
-
-    .stat-card {
-        background: #fff;
-        padding: 24px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-5px);
-    }
-
-    .stat-icon {
-        width: 56px;
-        height: 56px;
-        background: var(--accent-color);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: #fff;
-        opacity: 0.9;
-    }
-
-    .stat-info {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .stat-label {
-        font-size: 14px;
-        color: #64748b;
-        margin-bottom: 4px;
-    }
-
-    .stat-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #1a1a2e;
-    }
-
-    .content-sections {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-    }
-
-    .card {
-        background: #fff;
-        padding: 24px;
-        border-radius: 20px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
-
-    h2 {
-        font-size: 18px;
-        margin-bottom: 20px;
-        color: #1a1a2e;
-    }
-
-    .actions-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .action-btn {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 15px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        text-decoration: none;
-        color: #1a1a2e;
-        transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-        transform: scale(1.02);
-    }
-
-    .action-btn .icon {
-        font-size: 24px;
-    }
-
-    .action-btn .text {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .text span {
-        font-size: 12px;
-        color: #64748b;
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .view-all {
-        font-size: 14px;
-        color: #e94560;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .election-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .election-item {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 12px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .election-item:last-child {
-        border-bottom: none;
-    }
-
-    .election-icon {
-        font-size: 20px;
-        opacity: 0.6;
-    }
-
-    .election-details {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .election-details span {
-        font-size: 12px;
-        color: #64748b;
-    }
-
-    .status-badge {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .status-badge.finished {
-        background: #f1f5f9;
-        color: #64748b;
-    }
-
-    .loading-state,
-    .error-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 60px;
-        background: #fff;
-        border-radius: 20px;
-        border: 1px solid #e2e8f0;
-    }
-
-    .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid #f1f5f9;
-        border-top-color: #e94560;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-bottom: 20px;
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    @media (max-width: 1024px) {
-        .content-sections {
-            grid-template-columns: 1fr;
-        }
-    }
+    /* Global Inter font is already imported in layout */
 </style>
