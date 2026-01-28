@@ -102,17 +102,17 @@
     }
 </script>
 
-<div class="space-y-10 pb-20">
+<div class="space-y-6 pb-12">
     <header class="relative">
-        <div class="space-y-2">
+        <div class="space-y-1">
             <span
-                class="text-accent font-black tracking-[0.3em] text-[10px] uppercase"
+                class="text-accent font-black tracking-[0.3em] text-[9px] uppercase"
                 >Control Module</span
             >
-            <h1 class="text-3xl font-black font-outfit text-white">
+            <h1 class="text-2xl font-black font-outfit text-white">
                 Administration
             </h1>
-            <p class="text-slate-500 text-sm font-medium max-w-2xl">
+            <p class="text-slate-500 text-xs font-medium max-w-2xl">
                 Configuration du noyau électoral et gestion des registres
                 sécurisés.
             </p>
@@ -130,7 +130,7 @@
     {/if}
 
     <div
-        class="glass rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl"
+        class="glass rounded-xl overflow-hidden border border-white/5 shadow-xl"
     >
         <nav class="flex bg-white/5 border-b border-white/5 p-2 gap-2">
             {#each ["elections", "tours", "candidates"] as tab}

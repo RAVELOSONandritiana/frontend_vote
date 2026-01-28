@@ -4,7 +4,7 @@
     import type { Election, Tour, Candidat, Town } from "$lib/types";
     import { goto } from "$app/navigation";
 
-    let step = $state(1); // 1: Election, 2: Town, 3: Candidates, 4: Success
+    let step = $state(1); // 1: Election, 2: Candidates (Town auto-selected), 3: Success
     let elections = $state<Election[]>([
         {
             id: 1,
@@ -25,13 +25,12 @@
         },
     ]);
     let selectedTour = $state<Tour | null>(null);
-    let towns = $state<Town[]>([
-        { id: 1, name: "Antananarivo" },
-        { id: 2, name: "Toamasina" },
-        { id: 3, name: "Antsirabe" },
-        { id: 4, name: "Fianarantsoa" },
-    ]);
-    let selectedTown = $state<Town | null>(null);
+
+    // Context automatically retrieved from Admin Login
+    let adminContext = $state<{ town: Town }>({
+        town: { id: 1, name: "Antananarivo" }, // Mocked context
+    });
+
     let candidates = $state<Candidat[]>([
         {
             id: 501,
@@ -63,16 +62,12 @@
     async function selectElection(election: Election) {
         selectedElection = election;
         selectedTour = tours[0];
+        // Skip Town Selection -> Go straight to candidates using auto-context
         step = 2;
     }
 
-    async function selectTown(town: Town) {
-        selectedTown = town;
-        step = 3;
-    }
-
     async function castVote(candidate: Candidat) {
-        if (!selectedTour || !selectedTown) return;
+        if (!selectedTour || !adminContext.town) return;
 
         if (
             !confirm(
@@ -85,258 +80,216 @@
         // Simulation delayed vote
         setTimeout(() => {
             voting = false;
-            step = 4;
+            step = 3;
         }, 1500);
     }
 </script>
 
-<div class="max-w-4xl mx-auto space-y-12 pb-20">
-    <header class="text-center space-y-6">
-        <h1 class="text-4xl font-black text-slate-900 tracking-tight">
-            🗳️ Espace de Vote
-        </h1>
-
-        <div
-            class="flex items-center justify-center max-w-lg mx-auto relative px-4"
-        >
-            <div
-                class="absolute h-1 bg-slate-100 left-8 right-8 top-5 -z-0"
-            ></div>
-
-            {#each [1, 2, 3] as s}
-                <div
-                    class="flex-1 flex flex-col items-center gap-2 relative z-10 transition-all duration-500"
-                >
-                    <div
-                        class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-4 transition-all duration-500
-                        {step === s
-                            ? 'bg-rose-500 text-white border-rose-100 scale-125'
-                            : step > s
-                              ? 'bg-emerald-500 text-white border-emerald-100'
-                              : 'bg-slate-100 text-slate-400 border-white'}"
-                    >
-                        {step > s ? "✓" : s}
-                    </div>
-                    <span
-                        class="text-[10px] font-black uppercase tracking-widest
-                        {step >= s ? 'text-rose-500' : 'text-slate-400'}"
-                    >
-                        {s === 1 ? "Élection" : s === 2 ? "Bureau" : "Candidat"}
-                    </span>
-                </div>
-            {/each}
+<div class="max-w-5xl mx-auto space-y-8 pb-20">
+    <header class="flex items-center justify-between glass p-6 rounded-2xl">
+        <div class="space-y-1">
+            <h1
+                class="text-2xl font-black text-white tracking-tight flex items-center gap-3"
+            >
+                <span class="text-accent">●</span> Espace de Vote
+            </h1>
+            <p
+                class="text-slate-400 text-xs font-medium uppercase tracking-widest pl-6"
+            >
+                Bureau: <span class="text-white">{adminContext.town.name}</span>
+            </p>
         </div>
+
+        {#if step < 3}
+            <div
+                class="flex items-center gap-2 bg-black/20 p-2 rounded-xl border border-white/5"
+            >
+                <div
+                    class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all
+                    {step === 1
+                        ? 'bg-accent text-white shadow-lg shadow-accent/20'
+                        : 'text-slate-500'}"
+                >
+                    1. Scrutin
+                </div>
+                <div class="w-4 h-px bg-white/10"></div>
+                <div
+                    class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all
+                    {step === 2
+                        ? 'bg-accent text-white shadow-lg shadow-accent/20'
+                        : 'text-slate-500'}"
+                >
+                    2. Candidat
+                </div>
+            </div>
+        {/if}
     </header>
 
     {#if error}
         <div
-            class="bg-red-50 border-2 border-red-100 text-red-600 p-4 rounded-2xl flex items-center justify-between font-bold animate-in fade-in slide-in-from-top-4"
+            class="glass border-rose-500/20 p-4 rounded-xl flex items-center gap-4 text-rose-400 font-bold animate-in fade-in slide-in-from-top-2"
         >
-            <div class="flex items-center gap-3">
-                <span class="text-xl">⚠️</span>
-                <p>{error}</p>
-            </div>
-            {#if step > 1}
-                <button
-                    onclick={() => step--}
-                    class="bg-white px-4 py-1.5 rounded-xl border border-red-200 text-sm hover:bg-red-100 transition-colors"
-                >
-                    Retour
-                </button>
-            {/if}
+            <span class="text-lg">⚠️</span>
+            <p class="text-sm">{error}</p>
         </div>
     {/if}
 
-    <main class="animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <main class="animate-in fade-in slide-in-from-bottom-4 duration-500">
         {#if step === 1}
-            <section class="space-y-8">
-                <h2 class="text-2xl font-bold text-slate-900 text-center">
-                    Sélectionnez une élection
+            <section class="space-y-6">
+                <h2
+                    class="text-sm font-black text-slate-500 uppercase tracking-[0.3em] px-2 text-center"
+                >
+                    Confirmez le Scrutin
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {#each elections as election}
                         <button
-                            class="group bg-white border-2 border-slate-100 p-8 rounded-[2rem] text-center transition-all hover:border-rose-500 hover:shadow-2xl hover:shadow-rose-100 active:scale-95 flex flex-col items-center"
+                            class="card-premium group text-left relative overflow-hidden active:scale-[0.98] cursor-pointer"
                             onclick={() => selectElection(election)}
                         >
-                            <div
-                                class="text-5xl mb-6 grayscale group-hover:grayscale-0 transition-all group-hover:scale-110 duration-300"
-                            >
-                                🗳️
-                            </div>
-                            <h3 class="text-xl font-black text-slate-900 mb-2">
-                                {election.name}
-                            </h3>
-                            <span
-                                class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 px-4 py-1 bg-slate-50 rounded-full"
-                            >
-                                Ouverte le {new Date(
-                                    election.createdAt,
-                                ).toLocaleDateString()}
-                            </span>
-                            <div
-                                class="text-rose-500 font-black text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform"
-                            >
-                                Sélectionner →
+                            <div class="relative z-10 flex items-center gap-5">
+                                <div
+                                    class="w-12 h-12 glass rounded-xl flex items-center justify-center text-xl bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors duration-300"
+                                >
+                                    🗳️
+                                </div>
+                                <div>
+                                    <h3
+                                        class="text-lg font-black text-white group-hover:text-accent transition-colors"
+                                    >
+                                        {election.name}
+                                    </h3>
+                                    <span
+                                        class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
+                                    >
+                                        SESSION {new Date(
+                                            election.createdAt,
+                                        ).getFullYear()}
+                                    </span>
+                                </div>
+                                <div
+                                    class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-accent font-black text-xl"
+                                >
+                                    →
+                                </div>
                             </div>
                         </button>
                     {/each}
                 </div>
             </section>
         {:else if step === 2}
-            <section class="space-y-8">
-                <div class="flex justify-between items-center">
+            <section class="space-y-6">
+                <div class="flex items-center justify-between px-2">
                     <button
-                        class="text-slate-400 hover:text-rose-500 font-bold flex items-center gap-2 transition-colors uppercase text-xs tracking-widest"
+                        class="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2"
                         onclick={() => (step = 1)}
                     >
-                        ← Retour
+                        ← Changer de scrutin
                     </button>
-                    <h2 class="text-2xl font-black text-slate-900">
-                        Enregistrez votre bureau
-                    </h2>
+                    <span
+                        class="text-[10px] font-black text-accent uppercase tracking-widest animate-pulse"
+                    >
+                        SESSION SÉCURISÉE
+                    </span>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {#each towns as town}
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+                >
+                    {#each candidates as candidate}
                         <button
-                            class="bg-white border-2 border-slate-100 p-6 rounded-3xl text-center transition-all hover:border-rose-500 hover:bg-rose-50 group active:scale-95"
-                            onclick={() => selectTown(town)}
+                            class="card-premium group text-center relative overflow-hidden active:scale-[0.98] cursor-pointer p-0 bg-transparent"
+                            onclick={() => castVote(candidate)}
+                            disabled={voting}
                         >
                             <div
-                                class="text-3xl mb-3 grayscale group-hover:grayscale-0 transition-all"
+                                class="glass p-6 rounded-2xl bg-black/20 hover:bg-white/5 transition-colors border border-white/5 hover:border-accent/30 h-full flex flex-col items-center"
                             >
-                                🏙️
+                                <div
+                                    class="absolute top-4 left-4 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10"
+                                >
+                                    <span class="text-xs font-black text-white"
+                                        >#{candidate.number}</span
+                                    >
+                                </div>
+
+                                <div
+                                    class="w-20 h-20 rounded-full bg-slate-800 border-2 border-white/10 group-hover:border-accent/50 mb-4 overflow-hidden transition-all duration-300 shadow-xl"
+                                >
+                                    {#if candidate.person?.image}
+                                        <img
+                                            src={candidate.person.image}
+                                            alt=""
+                                            class="w-full h-full object-cover"
+                                        />
+                                    {:else}
+                                        <div
+                                            class="w-full h-full flex items-center justify-center text-2xl"
+                                        >
+                                            👤
+                                        </div>
+                                    {/if}
+                                </div>
+
+                                <h3
+                                    class="text-base font-bold text-white mb-1 group-hover:text-accent transition-colors"
+                                >
+                                    {candidate.person?.firstname}
+                                    {candidate.person?.lastname}
+                                </h3>
+
+                                <div class="mt-auto pt-4 w-full">
+                                    <div
+                                        class="w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all
+                                        {voting
+                                            ? 'bg-slate-800 text-slate-500'
+                                            : 'bg-accent text-white shadow-lg shadow-accent/20 group-hover:scale-105'}"
+                                    >
+                                        {voting ? "..." : "Voter"}
+                                    </div>
+                                </div>
                             </div>
-                            <h3
-                                class="font-black text-slate-800 group-hover:text-rose-600 transition-colors truncate"
-                            >
-                                {town.name}
-                            </h3>
                         </button>
                     {/each}
                 </div>
             </section>
         {:else if step === 3}
-            <section class="space-y-10">
-                <div
-                    class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100 pb-8"
-                >
-                    <div class="flex flex-col items-center md:items-start">
-                        <button
-                            class="text-slate-400 hover:text-rose-500 font-bold flex items-center gap-2 transition-colors uppercase text-xs tracking-widest mb-2"
-                            onclick={() => (step = 2)}
-                        >
-                            ← Retour au bureau
-                        </button>
-                        <h2 class="text-3xl font-black text-slate-900">
-                            Faites votre choix
-                        </h2>
-                        <p class="text-slate-500 font-medium">
-                            Cliquez sur le candidat pour confirmer votre
-                            suffrage.
-                        </p>
-                    </div>
-                    <div
-                        class="bg-indigo-50 px-6 py-3 rounded-2xl border border-indigo-100"
-                    >
-                        <span
-                            class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-0.5 text-center"
-                            >Bureau</span
-                        >
-                        <span class="font-black text-indigo-700"
-                            >{selectedTown?.name}</span
-                        >
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {#each candidates as candidate}
-                        <button
-                            class="bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 text-center relative overflow-hidden group transition-all hover:border-rose-500 hover:shadow-2xl hover:shadow-rose-100 active:scale-95"
-                            onclick={() => castVote(candidate)}
-                            disabled={voting}
-                        >
-                            <div
-                                class="absolute top-6 left-6 bg-slate-900 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-slate-200"
-                            >
-                                #{candidate.number}
-                            </div>
-
-                            <div
-                                class="w-32 h-32 rounded-full bg-slate-50 mx-auto mb-6 flex items-center justify-center text-5xl border-4 border-white shadow-inner overflow-hidden group-hover:scale-110 transition-transform duration-500"
-                            >
-                                {#if candidate.person?.image}
-                                    <img
-                                        src={candidate.person.image}
-                                        alt=""
-                                        class="w-full h-full object-cover"
-                                    />
-                                {:else}
-                                    👤
-                                {/if}
-                            </div>
-
-                            <h3
-                                class="text-2xl font-black text-slate-900 mb-6 group-hover:text-rose-600 transition-colors"
-                            >
-                                {candidate.person?.firstname.split(" ")[0]}<br
-                                />
-                                <span
-                                    class="text-rose-500 group-hover:text-slate-900 transition-colors capitalize"
-                                    >{candidate.person?.lastname}</span
-                                >
-                            </h3>
-
-                            <div
-                                class="bg-rose-500 text-white font-black py-4 rounded-2xl shadow-lg shadow-rose-200 uppercase tracking-widest text-sm
-                                {voting
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : 'group-hover:bg-slate-900 group-hover:shadow-slate-200 transition-all'}"
-                            >
-                                {voting
-                                    ? "Traitement..."
-                                    : "Voter pour ce candidat"}
-                            </div>
-                        </button>
-                    {/each}
-                </div>
-            </section>
-        {:else if step === 4}
             <section
-                class="flex flex-col items-center justify-center py-20 animate-in zoom-in-95 duration-700"
+                class="flex flex-col items-center justify-center py-10 animate-in zoom-in-95 duration-500"
             >
                 <div
-                    class="bg-white p-12 md:p-16 rounded-[4rem] text-center max-w-xl w-full border border-slate-100 shadow-2xl relative"
+                    class="glass p-10 rounded-[2rem] text-center max-w-sm w-full border border-emerald-500/20 shadow-2xl shadow-emerald-900/20 relative overflow-hidden"
                 >
                     <div
-                        class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-emerald-500 text-white rounded-[2rem] flex items-center justify-center text-5xl shadow-2xl shadow-emerald-100 animate-bounce"
+                        class="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none"
+                    ></div>
+
+                    <div
+                        class="w-16 h-16 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center text-3xl mb-6 mx-auto border border-emerald-500/20"
                     >
                         ✓
                     </div>
 
-                    <h2
-                        class="text-4xl font-black text-slate-900 mb-4 mt-4 tracking-tight"
-                    >
-                        Vote enregistré !
+                    <h2 class="text-2xl font-black text-white mb-2 font-outfit">
+                        Vote Confirmé
                     </h2>
-                    <p class="text-slate-500 text-lg leading-relaxed mb-10">
-                        Votre suffrage a été sécurisé avec succès. Merci d'avoir
-                        exercé votre droit de vote dans ce scrutin électronique.
+                    <p class="text-slate-400 text-xs leading-relaxed mb-8">
+                        Votre voix a été chiffrée et enregistrée dans le nœud
+                        local de
+                        <span class="text-emerald-400 font-bold"
+                            >{adminContext.town.name}</span
+                        >.
                     </p>
 
                     <button
-                        class="w-full py-5 bg-slate-900 hover:bg-rose-500 text-white font-black rounded-3xl transition-all shadow-xl shadow-slate-100 active:scale-95 uppercase tracking-widest text-sm"
+                        class="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-black rounded-xl transition-all border border-white/10 active:scale-95 uppercase tracking-widest text-[10px]"
                         onclick={() => goto("/")}
                     >
-                        Quitter l'isoloir sécurisé
+                        Terminer la session
                     </button>
                 </div>
             </section>
         {/if}
     </main>
 </div>
-
-<style>
-    /* Premium UI transitions and animations */
-</style>

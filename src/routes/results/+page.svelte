@@ -177,29 +177,27 @@
     }
 </script>
 
-<div class="space-y-12 pb-20">
+<div class="space-y-6 pb-12">
     <header class="relative">
         <div
-            class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8"
+            class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4"
         >
-            <div class="space-y-3">
+            <div class="space-y-1">
                 <span
-                    class="text-accent font-black tracking-[0.4em] text-[10px] uppercase"
+                    class="text-accent font-black tracking-[0.3em] text-[9px] uppercase"
                     >Data Stream</span
                 >
-                <h1 class="text-3xl font-black font-outfit text-white">
+                <h1 class="text-2xl font-black font-outfit text-white">
                     Analyse des Scrutins
                 </h1>
-                <p class="text-slate-500 text-sm font-medium max-w-xl">
+                <p class="text-slate-500 text-xs font-medium max-w-xl">
                     Visualisation en temps réel de l'intégrité démographique et
                     des flux électoraux.
                 </p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                <div
-                    class="glass-dark p-4 rounded-3xl space-y-2 flex-1 sm:min-w-[240px]"
-                >
+                <div>
                     <label
                         class="text-[9px] font-black text-slate-600 uppercase tracking-widest block ml-2"
                         >Registre</label
@@ -261,24 +259,24 @@
             </p>
         </div>
     {:else}
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <!-- Global Stats Canvas -->
-            <section class="lg:col-span-8 space-y-6">
-                <div class="flex justify-between items-center px-4">
+            <section class="lg:col-span-8 space-y-3">
+                <div class="flex justify-between items-center px-2">
                     <h3
-                        class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]"
+                        class="text-[9px] font-black text-slate-600 uppercase tracking-wider"
                     >
                         Flux des votes
                     </h3>
-                    <div class="flex gap-2">
-                        <div class="w-2 h-2 rounded-full bg-accent"></div>
+                    <div class="flex gap-1.5">
+                        <div class="w-1.5 h-1.5 rounded-full bg-accent"></div>
                         <div
-                            class="w-2 h-2 rounded-full bg-indigo-500 opacity-30"
+                            class="w-1.5 h-1.5 rounded-full bg-indigo-500 opacity-30"
                         ></div>
                     </div>
                 </div>
                 <div
-                    class="glass p-10 rounded-[3rem] h-[500px] relative overflow-hidden"
+                    class="glass p-6 rounded-xl h-[350px] relative overflow-hidden"
                 >
                     <div
                         class="absolute inset-0 bg-gradient-to-b from-accent/5 to-transparent opacity-30 pointer-events-none"

@@ -72,30 +72,30 @@
     ]);
 </script>
 
-<div class="space-y-12 pb-20">
+<div class="space-y-6 pb-12">
     <header class="relative">
         <div
-            class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
+            class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4"
         >
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <span
-                    class="text-accent font-black tracking-[0.3em] text-[10px] uppercase"
+                    class="text-accent font-black tracking-[0.3em] text-[9px] uppercase"
                     >Nexus Overview</span
                 >
-                <h1 class="text-3xl font-black font-outfit text-white">
+                <h1 class="text-2xl font-black font-outfit text-white">
                     Console de Contrôle
                 </h1>
-                <p class="text-slate-500 text-sm font-medium max-w-md">
+                <p class="text-slate-500 text-xs font-medium max-w-md">
                     Monitorez l'intégrité et la progression des scrutins.
                 </p>
             </div>
 
-            <div class="glass px-6 py-4 rounded-2xl flex items-center gap-4">
+            <div class="glass px-4 py-2 rounded-xl flex items-center gap-3">
                 <div
-                    class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
                 ></div>
                 <span
-                    class="text-sm font-bold text-slate-300 uppercase tracking-widest"
+                    class="text-xs font-bold text-slate-300 uppercase tracking-wider"
                     >System Operational</span
                 >
             </div>
@@ -130,36 +130,34 @@
         </div>
     {:else}
         <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {#each stats as stat}
                 <div
-                    class="glass group p-8 rounded-[2rem] hover:bg-white/10 transition-all duration-500 relative overflow-hidden"
+                    class="glass group p-4 rounded-xl hover:bg-white/10 transition-all duration-300 relative overflow-hidden"
                 >
                     <div
-                        class="absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br {stat.color} opacity-10 blur-2xl group-hover:opacity-20 transition-opacity"
+                        class="absolute -right-2 -top-2 w-16 h-16 bg-gradient-to-br {stat.color} opacity-10 blur-xl group-hover:opacity-20 transition-opacity"
                     ></div>
-
-                    <div class="flex flex-col gap-6 relative z-10">
+                    <div class="flex items-center gap-3 relative z-10">
                         <div
-                            class="w-12 h-12 glass rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-500"
+                            class="w-10 h-10 glass rounded-lg flex items-center justify-center text-lg group-hover:scale-105 transition-transform"
                         >
                             {stat.icon}
                         </div>
-                        <div>
+                        <div class="flex-1 min-w-0">
                             <span
-                                class="text-slate-500 text-xs font-black uppercase tracking-widest mb-1 block"
+                                class="text-slate-500 text-[9px] font-black uppercase tracking-wider block"
                                 >{stat.label}</span
                             >
-                            <div class="flex items-baseline gap-2">
+                            <div class="flex items-baseline gap-1.5">
                                 <span
-                                    class="text-4xl font-black text-white font-outfit"
+                                    class="text-2xl font-black text-white font-outfit"
                                     >{stat.value}</span
                                 >
+                                <span class="text-[9px] text-accent font-bold"
+                                    >{stat.trend}</span
+                                >
                             </div>
-                            <span
-                                class="text-[10px] text-accent font-bold mt-2 block"
-                                >{stat.trend}</span
-                            >
                         </div>
                     </div>
                 </div>
